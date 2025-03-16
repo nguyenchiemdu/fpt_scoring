@@ -15,5 +15,7 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
-
-dạ mh bắt đầu, mh show câu hỏi, nhập câu trả lời text rồi có mh đang phân tích, rồi mh kết quả và nhận xét
+```bash
+fvm flutter pub run build_runner build  --delete-conflicting-outputs
+fvm flutter pub run intl_utils:generate
+```

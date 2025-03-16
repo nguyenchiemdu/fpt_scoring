@@ -1,7 +1,7 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
+import 'package:fpt_scoring/api/api_services.dart';
 import 'package:fpt_scoring/result_screen.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class ExamScreen extends StatefulWidget {
   const ExamScreen({super.key});
@@ -11,32 +11,30 @@ class ExamScreen extends StatefulWidget {
 }
 
 class _ExamScreenState extends State<ExamScreen> with WidgetsBindingObserver {
-  final questions = [
-    'What is the capital of France?',
-    'What is the capital of Germany?',
-    'What is the capital of Italy?',
-  ];
+  final module = RegisterModuleImpl();
+  String? question;
 
-  late var currentQuestionIndex = Random().nextInt(questions.length);
+  final TextEditingController answerController = TextEditingController();
 
   @override
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
+    getRandomQuestion();
+  }
+
+  void getRandomQuestion() async {
+    final response = await module.apiService.getRandomQuestion();
+
+    setState(() {
+      question = response.question;
+    });
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      var newIndex = Random().nextInt(questions.length);
-
-      while (newIndex == currentQuestionIndex) {
-        newIndex = Random().nextInt(questions.length);
-      }
-
-      setState(() {
-        currentQuestionIndex = newIndex;
-      });
+      getRandomQuestion();
     }
   }
 
@@ -49,38 +47,50 @@ class _ExamScreenState extends State<ExamScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: const Text('FPT Scoring'),
-        ),
-        body: Center(
-            child: Column(
-          children: [
-            Text(
-              questions[currentQuestionIndex],
-              style: const TextStyle(fontSize: 24),
-            ),
-            const SizedBox(height: 60),
-            const TextField(
-              decoration: InputDecoration(
-                labelText: 'Answer',
-              ),
-              keyboardType: TextInputType.multiline,
-              maxLines: null,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (BuildContext context) {
-                      return const ResultScreen();
-                    },
+      appBar: AppBar(
+        title: const Text('FPT Scoring'),
+      ),
+      body: question == null
+          ? Center(
+              child: LoadingAnimationWidget.threeRotatingDots(
+              size: 50,
+              color: Theme.of(context).colorScheme.primary,
+            ))
+          : Center(
+              child: Column(
+                children: [
+                  Text(
+                    question!,
+                    style: const TextStyle(fontSize: 24),
                   ),
-                );
-              },
-              child: const Text('Submit'),
+                  const SizedBox(height: 60),
+                  TextField(
+                    decoration: InputDecoration(
+                      labelText: 'Answer',
+                    ),
+                    keyboardType: TextInputType.multiline,
+                    maxLines: null,
+                    controller: answerController,
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (BuildContext context) {
+                            return ResultScreen(
+                              question: question!,
+                              answer: answerController.text,
+                            );
+                          },
+                        ),
+                      );
+                    },
+                    child: const Text('Submit'),
+                  ),
+                ],
+              ),
             ),
-          ],
-        )));
+    );
   }
 }

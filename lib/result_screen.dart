@@ -1,29 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:fpt_scoring/api/api_services.dart';
+import 'package:fpt_scoring/api/response/submit_exam_response.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class ResultScreen extends StatefulWidget {
-  const ResultScreen({super.key});
+  const ResultScreen({
+    required this.question,
+    required this.answer,
+    super.key,
+  });
 
+  final String question;
+  final String answer;
   @override
   State<ResultScreen> createState() => _ResultScreenState();
 }
 
 class _ResultScreenState extends State<ResultScreen> {
+  final module = RegisterModuleImpl();
+  SubmitExamResponse? result;
+
   @override
   void initState() {
     super.initState();
+    submitResult();
+  }
 
-    Future.delayed(const Duration(seconds: 2), () {
-      setState(() {
-        isLoading = false;
-      });
+  void submitResult() async {
+    final response = await module.apiService.submitExam(
+      question: widget.question,
+      answer: widget.answer,
+    );
+
+    setState(() {
+      result = response;
     });
   }
 
-  var isLoading = true;
-  var score =
-      (50 + (100 - 50) * (DateTime.now().millisecondsSinceEpoch % 100) / 100)
-          .toInt();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +44,7 @@ class _ResultScreenState extends State<ResultScreen> {
         title: const Text('FPT Scoring'),
       ),
       body: Center(
-        child: isLoading
+        child: result == null
             ? LoadingAnimationWidget.threeRotatingDots(
                 size: 50,
                 color: Theme.of(context).colorScheme.primary,
@@ -40,10 +53,12 @@ class _ResultScreenState extends State<ResultScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "You scored $score out of 100",
-                    style: TextStyle(fontSize: 24),
+                    result!.correctAnswer,
                   ),
                   const SizedBox(height: 20),
+                  Text(
+                    result!.score,
+                  ),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop();
