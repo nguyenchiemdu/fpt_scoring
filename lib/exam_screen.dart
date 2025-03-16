@@ -53,9 +53,10 @@ class _ExamScreenState extends State<ExamScreen> with WidgetsBindingObserver {
       body: question == null
           ? Center(
               child: LoadingAnimationWidget.threeRotatingDots(
-              size: 50,
-              color: Theme.of(context).colorScheme.primary,
-            ))
+                size: 50,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            )
           : Center(
               child: Column(
                 children: [
